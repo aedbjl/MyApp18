@@ -13,6 +13,9 @@ class ViewController: UIViewController {
     let fmgr = FileManager.default
     let docDir = NSHomeDirectory() + "/Documents"
     
+    var ai:UIActivityIndicatorView?
+    
+    @IBOutlet weak var webView: UIWebView!
     @IBOutlet weak var imageView: UIImageView!
     @IBAction func test1(_ sender: Any) {
         let url = URL(string: "https://img.technews.tw/wp-content/uploads/2014/03/android-vs-ios.jpg")
@@ -43,9 +46,19 @@ class ViewController: UIViewController {
         }
     }
     private func showImage(data: Data){
-        let img = UIImage(data: data)
-        DispatchQueue.main.async {
-            self.imageView.image = img
+        //1.
+//        let img = UIImage(data: data)
+//        DispatchQueue.main.async {
+//            self.imageView.image = img
+//        }
+        //2.
+        let imgFile = docDir + "/apple.jpg"
+        if fmgr.fileExists(atPath: imgFile){
+            let img = UIImage(contentsOfFile: imgFile)
+            
+            DispatchQueue.main.async {
+                self.imageView.image = img
+            }
         }
         
     }
@@ -54,10 +67,53 @@ class ViewController: UIViewController {
     }
     
     @IBAction func test3(_ sender: Any) {
+        
+        ai = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+        ai?.frame = CGRect(x: 200, y: 200, width: 100, height: 100)
+        ai?.startAnimating()
+        view.addSubview(ai!)
+        
+        
+        
+        let url = URL(string: "http://pdfmyurl.com/?url=http://tw.yahoo.com")
+        let req = URLRequest(url: url!)
+        webView.loadRequest(req)
+        let session = URLSession(configuration: .default)
+        let task = session.downloadTask(with: req, completionHandler: {(url,resp,error)in
+            if error == nil {
+                print("ok")
+                
+                DispatchQueue.main.async {
+                    self.ai?.removeFromSuperview()
+                }
+                
+                
+                self.savePDF(url:url!)
+            }
+        })
+        
+        task.resume()
+        
+    }
+    private func savePDF(url:URL){
+        
+        
+        
+        
+        let newpdf = docDir + "/yahoo.pdf"
+        
+        let target = URL(fileURLWithPath: newpdf)
+        do{
+            try fmgr.copyItem(at: url, to: target)
+        }catch{
+            print(error)
+        }
+        
     }
     
     @IBAction func test4(_ sender: Any) {
     }
+    
     
     
     
